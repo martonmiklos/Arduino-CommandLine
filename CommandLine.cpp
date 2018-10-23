@@ -1,26 +1,47 @@
 #include "CommandLine.h"
 
-CommandLine::CommandLine(Stream& _serial, char* _token): serial(_serial), token(_token)
+CommandLine::CommandLine(Stream *_serial, char* _token): m_stream(_serial), token(_token)
 {
     input.index = 0;
-    commands.index = 0;
-
+	commands.index = 0;
     #if COMMANDLINE_HISTORY
         history.index = 0;
     #endif
+}
+
+CommandLine::CommandLine(char* _token) : 
+	CommandLine(nullptr, _token)
+{
+
+}
+
+
+CommandLine::CommandLine() :
+	CommandLine("> ")
+{
+
+}
+
+void CommandLine::setStream(Stream *stream)
+{
+	input.index = 0;
+	#if COMMANDLINE_HISTORY
+	history.index = 0;
+	#endif
+	this->m_stream = stream;
 }
 
 bool CommandLine::update()
 {
     bool success = false;
 
-    if (this->serial.available()) {
-        char input = this->serial.read();
+    if (this->m_stream->available()) {
+        char input = this->m_stream->read();
 
         switch (input) {
             case KEYCODE_ENTER:
                 // Write newline
-                this->serial.println("");
+                this->m_stream->println("");
 
                 // Parse command
                 if (this->input.index > 0) {
@@ -56,7 +77,7 @@ bool CommandLine::update()
                     for (int i = 0; i < this->commands.index; i++) {
                         if (strncmp(split, this->commands.items[i]->command, length) == 0) {
                             if (strlen(this->commands.items[i]->command) == length) {
-                                this->commands.items[i]->callback(&this->input.buffer[this->input.index]);
+                                this->commands.items[i]->callback(this->m_stream, &this->input.buffer[this->input.index]);
                                 success = true;
                                 break;
                             }
@@ -81,7 +102,7 @@ bool CommandLine::update()
                 #endif
 
                 // Write a new input token.
-                this->serial.print(this->token);
+                this->m_stream->print(this->token);
 
                 break;
             case KEYCODE_BACKSPACE:
@@ -91,9 +112,9 @@ bool CommandLine::update()
                     this->input.index--;
 
                     // Clear last char on screen.
-                    this->serial.write(KEYCODE_BACKSPACE);
-                    this->serial.write(KEYCODE_SPACE);
-                    this->serial.write(KEYCODE_BACKSPACE);
+                    this->m_stream->write(KEYCODE_BACKSPACE);
+                    this->m_stream->write(KEYCODE_SPACE);
+                    this->m_stream->write(KEYCODE_BACKSPACE);
                 }
 
                 break;
@@ -138,7 +159,7 @@ bool CommandLine::update()
                         this->input.index++;
 
                         // Repeat char
-                        this->serial.write(input);
+                        this->m_stream->write(input);
                     }
                 }
 
@@ -173,7 +194,7 @@ bool CommandLine::add(Command& command)
     return false;
 }
 
-bool CommandLine::add(char* command, void (*callback)(char*))
+bool CommandLine::add(char* command, void (*callback)(Stream *, char*))
 {
     Command* cmd = (Command*) malloc(sizeof(Command));
 
@@ -211,9 +232,9 @@ bool CommandLine::remove(Command& command)
         this->input.index = strnlen(this->input.buffer, COMMANDLINE_BUFFER);
 
         // Show new line
-        this->serial.write("\33[2K\r");
-        this->serial.print(this->token);
-        this->serial.print(this->input.buffer);
+        this->m_stream->write("\33[2K\r");
+        this->m_stream->print(this->token);
+        this->m_stream->print(this->input.buffer);
     }
 #endif
 
