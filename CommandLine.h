@@ -13,7 +13,7 @@
 
 // Maximum number of characters in input buffer.
 #ifndef COMMANDLINE_BUFFER
-    #define COMMANDLINE_BUFFER 32
+    #define COMMANDLINE_BUFFER 64
 #endif
 
 // Maximum number of commands to keep in history (for up/down support).
