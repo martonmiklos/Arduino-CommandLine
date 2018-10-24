@@ -17,7 +17,7 @@ CommandLine::CommandLine(char* _token) :
 
 
 CommandLine::CommandLine() :
-	CommandLine("> ")
+	CommandLine(">")
 {
 
 }
@@ -40,6 +40,7 @@ bool CommandLine::update()
 
         switch (input) {
             case KEYCODE_ENTER:
+			case KEYCODE_LF:
                 // Write newline
                 this->m_stream->println("");
 
@@ -119,34 +120,33 @@ bool CommandLine::update()
 
                 break;
             #if COMMANDLINE_HISTORY > 0
-                case KEYCODE_UP:
-                    if (this->history.index > 0) {
-                        // Decide on item to show. If current is equal to the index, show the newest item first.
-                        if (this->history.current == this->history.index) {
-                            this->history.current = 0;
-                        } else {
-                            this->history.current = (this->history.current + 1) % this->history.index;
-                        }
-
-                        // Restore from history.
-                        this->restore();
+            case KEYCODE_UP:
+                if (this->history.index > 0) {
+                    // Decide on item to show. If current is equal to the index, show the newest item first.
+                    if (this->history.current == this->history.index) {
+                        this->history.current = 0;
+                    } else {
+                        this->history.current = (this->history.current + 1) % this->history.index;
                     }
 
-                    break;
-                case KEYCODE_DOWN:
-                    if (this->history.index > 0) {
-                        // Decide on item to show. If current is equal to the index, show the oldest item first.
-                        if (this->history.current == this->history.index) {
-                            this->history.current = this->history.index - 1;
-                        } else {
-                            this->history.current = (this->history.current == 0 ? this->history.index : this->history.current) - 1;
-                        }
+                    // Restore from history.
+                    this->restore();
+                }
 
-                        // Restore from history.
-                        this->restore();
+                break;
+            case KEYCODE_DOWN:
+                if (this->history.index > 0) {
+                    // Decide on item to show. If current is equal to the index, show the oldest item first.
+                    if (this->history.current == this->history.index) {
+                        this->history.current = this->history.index - 1;
+                    } else {
+                        this->history.current = (this->history.current == 0 ? this->history.index : this->history.current) - 1;
                     }
 
-                    break;
+                    // Restore from history.
+                    this->restore();
+                }
+                break;
             #endif
             default:
                 if (input > 31 && input < 127) {
@@ -162,7 +162,6 @@ bool CommandLine::update()
                         this->m_stream->write(input);
                     }
                 }
-
                 break;
         }
     }

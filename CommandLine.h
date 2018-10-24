@@ -28,6 +28,7 @@
 #define KEYCODE_BACKSPACE 8
 #define KEYCODE_TAB 9
 #define KEYCODE_ENTER 13
+#define KEYCODE_LF    10
 #define KEYCODE_SPACE 32
 #define KEYCODE_UP 65
 #define KEYCODE_DOWN 66
